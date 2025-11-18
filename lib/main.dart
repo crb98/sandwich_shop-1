@@ -40,12 +40,18 @@ class _OrderScreenState extends State<OrderScreen> {
   BreadType _selectedBreadType = BreadType.white;
   int _quantity = 1;
 
+  String? _confirmationMessage;
+
+  int _cartItemCount = 0;
+  double _cartTotal = 0.0;
+
   @override
   void initState() {
     super.initState();
     _notesController.addListener(() {
       setState(() {});
     });
+    _updateCartSummary();
   }
 
   @override
@@ -75,8 +81,34 @@ class _OrderScreenState extends State<OrderScreen> {
       String confirmationMessage =
           'Added $_quantity $sizeText ${sandwich.name} sandwich(es) on ${_selectedBreadType.name} bread to cart';
 
+      // show in debug console as before
       debugPrint(confirmationMessage);
+
+      // also show in UI
+      setState(() {
+        _confirmationMessage = confirmationMessage;
+      });
+
+      // update summary (async, updates state when complete)
+      _updateCartSummary();
+
+      // clear the confirmation message after a short delay
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        setState(() {
+          _confirmationMessage = null;
+        });
+      });
     }
+  }
+
+  Future<void> _updateCartSummary() async {
+    final total = await _cart.getTotalPrice();
+    if (!mounted) return;
+    setState(() {
+      _cartTotal = total;
+      _cartItemCount = _cart.totalItems;
+    });
   }
 
   VoidCallback? _getAddToCartCallback() {
@@ -245,6 +277,36 @@ class _OrderScreenState extends State<OrderScreen> {
                 icon: Icons.add_shopping_cart,
                 label: 'Add to Cart',
                 backgroundColor: Colors.green,
+              ),
+              const SizedBox(height: 12),
+              if (_confirmationMessage != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _confirmationMessage!,
+                      style: normalText,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              // Permanent cart summary
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Items in cart: $_cartItemCount', style: normalText),
+                    Text('Total: £${_cartTotal.toStringAsFixed(2)}',
+                        style: heading2),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
             ],
