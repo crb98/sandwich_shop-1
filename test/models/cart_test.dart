@@ -9,7 +9,7 @@ class FakePricingRepository implements PricingRepository {
   FakePricingRepository(this.sixInchPrice);
 
   @override
-  double calculatePrice({required bool isFootlong, required int quantity}) {
+  double calculatePrice(Sandwich sandwich, {required int quantity, required bool isFootlong}) {
     final unit = isFootlong ? sixInchPrice * 2 : sixInchPrice;
     return unit * quantity;
   }
