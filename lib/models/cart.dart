@@ -70,18 +70,23 @@ class Cart {
     return a.type == b.type && a.isFootlong == b.isFootlong && a.breadType == b.breadType;
   }
 
-  /// Helper that attempts to call PricingRepository.calculatePrice in a tolerant way:
-  /// - First tries calculatePrice(sandwich, quantity)
-  /// - If that raises a NoSuchMethodError, falls back to calculatePrice(sandwich)
-  /// The result is awaited so the repository can be sync or async.
   Future<double> _calculatePrice(Sandwich sandwich, int quantity) async {
-    final dynamic calc = pricingRepository.calculatePrice;
+    // Call the repository with the required named params and normalize result to double.
+    dynamic callResult;
     try {
-      final result = calc(sandwich, quantity);
-      return await result;
-    } on NoSuchMethodError {
-      final result = calc(sandwich);
-      return await result;
+      callResult = pricingRepository.calculatePrice(
+        sandwich,
+        quantity: quantity,
+        isFootlong: sandwich.isFootlong,
+      );
+    } catch (e) {
+      // If the repository throws for any reason, return 0.0 to avoid crashing.
+      return 0.0;
     }
+
+    final dynamic awaited = await (callResult is Future ? callResult : Future.value(callResult));
+
+    if (awaited is num) return awaited.toDouble();
+    return double.tryParse(awaited.toString()) ?? 0.0;
   }
 }
