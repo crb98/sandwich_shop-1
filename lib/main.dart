@@ -200,6 +200,18 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leadingWidth: kToolbarHeight + 8,
+        leading: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: SizedBox(
+            width: kToolbarHeight,
+            height: kToolbarHeight,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Image.asset('assets/images/logo.png'),
+            ),
+          ),
+        ),
         title: const Text(
           'Sandwich Counter',
           style: heading1,
